@@ -1,0 +1,29 @@
+[package]
+name = "sc-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+# Web Frame
+axum = "0.6.0-rc.1"
+
+# Async
+futures = "0.3"
+tokio = { version = "1.20", features = ["full"] }
+
+# Serde
+serde = { version = "^1.0", features = ["derive"] }
+serde_json = "1"
+
+# Log
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Database Connection
+sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "postgres" ] }
+
+# Misc
+anyhow = "^1.0"
+once_cell = "^1.13"
+dotenvy = "^0.15"
