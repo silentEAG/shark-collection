@@ -29,7 +29,7 @@ macro_rules! generate_config {
                 pub fn $name(&self) -> generate_config!(@type $ty, $none_action) {
                     self.$name.clone()
                 }
-            )+ 
+            )+
         }
 
         use core::fmt::Display;
@@ -37,7 +37,7 @@ macro_rules! generate_config {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
                 $(
                     write!(f, "\n\x1b[32m[*]\x1b[0m {} => {}", stringify!($name), self.$name).unwrap();
-                )+ 
+                )+
                 Ok(())
             }
         }
@@ -52,9 +52,9 @@ macro_rules! generate_config {
 
         #[derive(Serialize, Deserialize, Debug, Default, Clone)]
         pub struct BuilderItemInfo {
-            /// config item node name
+            /// Config item node name
             pub cfg_name: String,
-            /// where config item defined
+            /// Where config item defined
             pub come_from: String,
         }
 
@@ -76,7 +76,7 @@ macro_rules! generate_config {
 
         impl ConfigBuilder {
 
-            /// init with nothing
+            /// Init with nothing
             fn new() -> Self {
                 let mut info = HashMap::new();
                 let mut count: usize = 0;
@@ -156,7 +156,7 @@ macro_rules! generate_config {
             }
         }
 
-        /// load default config vars
+        /// Load default config vars
         impl Default for ConfigBuilder {
             fn default() -> Self {
                 let mut info = HashMap::new();
@@ -200,4 +200,6 @@ generate_config! {
     db_url: String, true, def, "postgres://postgres:root@localhost/shark_collection".to_string();
     /// Database max connections.
     db_max_connections: u32, true, def, 5_u32;
+    /// Log file name.
+    log_file_name: String, true, def, "server.log".to_string();
 }
