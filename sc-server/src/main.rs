@@ -8,6 +8,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, Layer};
 
 mod common;
 mod config;
+mod error;
 mod init;
 mod model;
 mod router;
@@ -41,7 +42,6 @@ async fn main() -> anyhow::Result<()> {
         // Set the stdout/stderr logger
         .with(
             tracing_subscriber::fmt::layer()
-                .pretty()
         )
         .init();
 
@@ -55,15 +55,9 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Listening on {}...", addr);
 
     // Server ready to start
-    let server = axum::Server::bind(&addr).serve(app.into_make_service());
-
-    // Ctrl-C controller
-    tokio::spawn(async move {
-        tokio::signal::ctrl_c().await.unwrap();
-        tracing::info!("going to shut down...");
-        // TODO: Can do something there before shutdown
-        std::process::exit(0);
-    });
+    let server = axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .with_graceful_shutdown(shutdown_signel());
 
     // Start server
     let (res,) = join!(server);
@@ -71,4 +65,30 @@ async fn main() -> anyhow::Result<()> {
         tracing::error!("Server Error: {}", res.err().unwrap());
     }
     Ok(())
+}
+
+/// Receive shutdown signel
+async fn shutdown_signel() {
+    let recv_ctrl_c = async {
+        tokio::signal::ctrl_c().await.expect("Failed to install Ctrl-C handler");
+    };
+
+    #[cfg(unix)]
+    let recv_terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("Failed to install signal handler").recv().await;
+    };
+
+    #[cfg(not(unix))]
+    let recv_terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = recv_ctrl_c => {work_before_shutdown()},
+        _ = recv_terminate => {work_before_shutdown()},
+    }
+}
+
+/// TODO: Can do something there before shutdown
+fn work_before_shutdown() {
+    tracing::info!("going to shutdown...");
 }
