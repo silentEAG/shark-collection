@@ -5,7 +5,7 @@ use std::{
 
 use axum::{
     routing::{get, post},
-    Extension, Router,
+    Router,
 };
 use sqlx::{postgres::PgPoolOptions, Error, Pool, Postgres};
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
@@ -43,12 +43,11 @@ impl std::io::Write for LogWriter {
     }
 }
 
-pub async fn app() -> anyhow::Result<Router> {
+pub async fn app() -> anyhow::Result<Router<Pool<Postgres>>> {
     let pool = db().await?;
-    Ok(Router::new()
+    Ok(Router::with_state(pool)
         .route("/", get(pong))
-        .route("/save", post(save))
-        .layer(Extension(pool)))
+        .route("/save", post(save)))
 }
 
 pub async fn db() -> Result<Pool<Postgres>, Error> {

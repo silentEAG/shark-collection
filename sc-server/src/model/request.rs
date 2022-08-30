@@ -1,7 +1,7 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize)]
-pub struct UrlJson {
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ItemJson {
     pub url: String,
     pub title: String,
     pub tags: Vec<String>,

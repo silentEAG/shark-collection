@@ -1,9 +1,9 @@
 use config::ConfigBuilder;
 use futures::join;
 use once_cell::sync::Lazy;
-use tracing_appender::{rolling, non_blocking};
 use std::net::SocketAddr;
 use tracing::metadata::LevelFilter;
+use tracing_appender::{non_blocking, rolling};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, Layer};
 
 mod common;
@@ -12,6 +12,7 @@ mod error;
 mod init;
 mod model;
 mod router;
+mod types;
 
 static CONFIG: Lazy<config::ConfigItems> = Lazy::new(|| {
     let builder = ConfigBuilder::default().add_env();
@@ -40,9 +41,7 @@ async fn main() -> anyhow::Result<()> {
                 .with_filter(LevelFilter::TRACE),
         )
         // Set the stdout/stderr logger
-        .with(
-            tracing_subscriber::fmt::layer()
-        )
+        .with(tracing_subscriber::fmt::layer())
         .init();
 
     // Make sure config loading is right
@@ -70,13 +69,17 @@ async fn main() -> anyhow::Result<()> {
 /// Receive shutdown signel
 async fn shutdown_signel() {
     let recv_ctrl_c = async {
-        tokio::signal::ctrl_c().await.expect("Failed to install Ctrl-C handler");
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to install Ctrl-C handler");
     };
 
     #[cfg(unix)]
     let recv_terminate = async {
         tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-            .expect("Failed to install signal handler").recv().await;
+            .expect("Failed to install signal handler")
+            .recv()
+            .await;
     };
 
     #[cfg(not(unix))]
