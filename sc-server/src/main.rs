@@ -20,7 +20,7 @@ static CONFIG: Lazy<config::ConfigItems> = Lazy::new(|| {
 });
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> crate::types::Result<()> {
     // Logger subscribe
     // TODO: Make a LogWriter by self for more features such as filtering ansi
     // Generate none blocking logger in file
@@ -40,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
                 .with_writer(none_blocking_file_appender)
                 .with_filter(LevelFilter::TRACE),
         )
-        // Set the stdout/stderr logger
+        // Set the console logger
         .with(tracing_subscriber::fmt::layer())
         .init();
 

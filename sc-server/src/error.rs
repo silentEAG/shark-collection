@@ -23,11 +23,16 @@ impl IntoResponse for ServerError {
         let (status, error_message) = match self {
             ServerError::IO(error) => (StatusCode::BAD_REQUEST, error.to_string()),
             ServerError::DataBase(error) => (StatusCode::BAD_REQUEST, error.to_string()),
-            _ => (StatusCode::BAD_REQUEST, "Oops! Unkown Error!".to_string()),
+            ServerError::OtherWithMessage(m) => (StatusCode::BAD_REQUEST, m),
+            _ => (
+                StatusCode::BAD_REQUEST,
+                "Oops! Unknown Error :(".to_string(),
+            ),
         };
-
+        tracing::error!("{}", error_message);
         let body = Json(json!({
-            "error": error_message,
+            "status": "error",
+            "message": error_message,
         }));
 
         (status, body).into_response()

@@ -1,13 +1,11 @@
+use crate::model::{entity::ScItem, request::ItemJson};
 use crate::types::Result;
-use crate::{
-    error::ServerError,
-    model::{entity::ScItem, request::ItemJson},
-};
 use axum::{
     extract::State,
     response::{IntoResponse, Response},
     Json,
 };
+use serde_json::json;
 use sqlx::{Pool, Postgres};
 use tracing::instrument;
 
@@ -17,19 +15,11 @@ pub async fn handler(
     Json(frm): Json<ItemJson>,
 ) -> Result<Response> {
     let item = ScItem::from(frm);
+    let mut save_transaction = pool.begin().await?;
 
-    let res = sqlx::query!(
-        "INSERT INTO sc_item (url, title, tags, catalog) VALUES ($1, $2, $3, $4)",
-        item.url,
-        item.title,
-        item.tags,
-        item.catalog
-    )
-    .execute(&pool)
-    .await?;
+    item.insert(&mut save_transaction).await?;
 
-    match res.rows_affected() {
-        0 => Err(ServerError::OtherWithMessage("Insert Failed.".to_string())),
-        _ => Ok(Json(item).into_response()),
-    }
+    save_transaction.commit().await?;
+
+    Ok(Json(json!({"status": "ok"})).into_response())
 }

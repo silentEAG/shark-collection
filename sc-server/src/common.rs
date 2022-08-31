@@ -3,6 +3,8 @@
 use anyhow::Result;
 use std::{fs::File, io::Read, path::Path, str::FromStr};
 
+use crate::error::ServerError;
+
 pub fn get_env_str(name: &str) -> Option<String> {
     match std::env::var(name) {
         Ok(value) => Some(value),
@@ -38,4 +40,8 @@ pub fn read_file_string(path: &str) -> Result<String> {
     let mut file = File::open(Path::new(path))?;
     file.read_to_string(&mut contents)?;
     Ok(contents)
+}
+
+pub fn error(message: &str) -> crate::types::Result<()> {
+    Err(ServerError::OtherWithMessage(message.to_string()))
 }

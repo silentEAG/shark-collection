@@ -43,7 +43,7 @@ impl std::io::Write for LogWriter {
     }
 }
 
-pub async fn app() -> anyhow::Result<Router<Pool<Postgres>>> {
+pub async fn app() -> crate::types::Result<Router<Pool<Postgres>>> {
     let pool = db().await?;
     Ok(Router::with_state(pool)
         .route("/", get(pong))
