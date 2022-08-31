@@ -22,7 +22,7 @@ static CONFIG: Lazy<config::ConfigItems> = Lazy::new(|| {
 #[tokio::main]
 async fn main() -> crate::types::Result<()> {
     // Logger subscribe
-    // TODO: Make a LogWriter by self for more features such as filtering ansi
+    // TODO: Make a LogWriter for more features such as filtering ansi
     // Generate none blocking logger in file
     let file_appender = rolling::daily("logs", CONFIG.log_file_name());
     let (none_blocking_file_appender, _guard) = non_blocking(file_appender);
@@ -31,7 +31,7 @@ async fn main() -> crate::types::Result<()> {
     tracing_subscriber::registry()
         // Set the Log level
         .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "TRACE".into()),
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "DEBUG".into()),
         ))
         // Set the file logger
         .with(

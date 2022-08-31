@@ -2,11 +2,12 @@ use self::entity::Item;
 use crate::common::err_message;
 use crate::model::request::{ItemBody, NewItem};
 use crate::types::Result;
+use axum::routing::post;
 use axum::{
-    extract::State,
     response::{IntoResponse, Response},
     Json,
 };
+use axum::{Extension, Router};
 use serde_json::json;
 use sqlx::{Pool, Postgres};
 use tracing::instrument;
@@ -16,9 +17,13 @@ use super::tag::entity::Tag;
 
 pub mod entity;
 
+pub fn router() -> Router {
+    Router::new().route("/api/item/save", post(save))
+}
+
 #[instrument(skip(frm, pool))]
-pub async fn save_item(
-    State(pool): State<Pool<Postgres>>,
+pub async fn save(
+    Extension(pool): Extension<Pool<Postgres>>,
     Json(frm): Json<ItemBody<NewItem>>,
 ) -> Result<Response> {
     let mut item = Item::from(frm.item);

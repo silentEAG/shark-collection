@@ -14,17 +14,43 @@ impl Tag {
 
     /// Upsert tag table and return `id`
     pub async fn upsert(&self, pool: &mut sqlx::Transaction<'_, sqlx::Postgres>) -> Result<isize> {
+
         let res = sqlx::query!(
             r#"
-                INSERT INTO sc_tag(name, num)
-                VALUES($1, 1)
-                ON conflict(name)
-                DO UPDATE SET num = sc_tag.num + 1 RETURNING id
+                SELECT id FROM sc_tag WHERE name = $1
             "#,
             self.name
         )
         .fetch_one(&mut *pool)
-        .await?;
-        Ok(res.id as isize)
+        .await;
+
+        let id = match res {
+            Ok(r) => {
+                sqlx::query!(
+                    r#"
+                        UPDATE sc_tag
+                        SET num = num + 1
+                        WHERE id = $1
+                    "#,
+                    r.id
+                )
+                .execute(&mut *pool)
+                .await?;
+                r.id
+            }
+            Err(_) => {
+                let r = sqlx::query!(
+                    r#"
+                        INSERT INTO sc_tag(name, num)
+                        VALUES($1, 1) RETURNING id
+                    "#,
+                    self.name
+                )
+                .fetch_one(&mut *pool)
+                .await?;
+                r.id
+            }
+        };
+        Ok(id as isize)
     }
 }

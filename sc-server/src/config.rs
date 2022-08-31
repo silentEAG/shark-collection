@@ -199,7 +199,7 @@ generate_config! {
     /// Database url.
     db_url: String, true, def, "postgres://postgres:root@localhost/shark_collection".to_string();
     /// Database max connections.
-    db_max_connections: u32, true, def, 5_u32;
+    db_max_connections: u32, true, def, 25_u32;
     /// Log file name.
     log_file_name: String, true, def, "server.log".to_string();
 }

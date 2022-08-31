@@ -1,16 +1,15 @@
+use axum::{routing::get, Extension, Router};
+use hyper::Method;
+use sqlx::{postgres::PgPoolOptions, Error, Pool, Postgres};
 use std::{
     fs,
     path::{Path, PathBuf},
 };
-
-use axum::{
-    routing::{get, post},
-    Router,
-};
-use sqlx::{postgres::PgPoolOptions, Error, Pool, Postgres};
+use tower::ServiceBuilder;
+use tower_http::cors::{Any, CorsLayer};
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
 
-use crate::router::item::save_item;
+use crate::router::item;
 use crate::router::pong::handler as pong;
 use crate::CONFIG;
 
@@ -43,11 +42,22 @@ impl std::io::Write for LogWriter {
     }
 }
 
-pub async fn app() -> crate::types::Result<Router<Pool<Postgres>>> {
+pub async fn app() -> crate::types::Result<Router> {
     let pool = db().await?;
-    Ok(Router::with_state(pool)
+    Ok(Router::new()
         .route("/api", get(pong))
-        .route("/api/item/save", post(save_item)))
+        .merge(item::router())
+        .layer(
+            ServiceBuilder::new()
+                .layer(Extension(pool))
+                .layer(
+                    CorsLayer::new()
+                        // Allow `GET` and `POST` when accessing the resource
+                        .allow_methods([Method::GET, Method::POST])
+                        // Allow requests from any origin
+                        .allow_origin(Any),
+                ),
+        ))
 }
 
 pub async fn db() -> Result<Pool<Postgres>, Error> {
