@@ -3,7 +3,7 @@
 use anyhow::Result;
 use std::{fs::File, io::Read, path::Path, str::FromStr};
 
-use crate::error::ServerError;
+use crate::error::{self, ServerError};
 
 pub fn get_env_str(name: &str) -> Option<String> {
     match std::env::var(name) {
@@ -42,6 +42,6 @@ pub fn read_file_string(path: &str) -> Result<String> {
     Ok(contents)
 }
 
-pub fn error(message: &str) -> crate::types::Result<()> {
-    Err(ServerError::OtherWithMessage(message.to_string()))
+pub fn err_message(message: &str) -> error::ServerError {
+    ServerError::OtherWithMessage(message.to_string())
 }

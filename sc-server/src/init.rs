@@ -10,8 +10,8 @@ use axum::{
 use sqlx::{postgres::PgPoolOptions, Error, Pool, Postgres};
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
 
+use crate::router::item::save_item;
 use crate::router::pong::handler as pong;
-use crate::router::save::handler as save;
 use crate::CONFIG;
 
 #[derive(Clone, Debug)]
@@ -46,8 +46,8 @@ impl std::io::Write for LogWriter {
 pub async fn app() -> crate::types::Result<Router<Pool<Postgres>>> {
     let pool = db().await?;
     Ok(Router::with_state(pool)
-        .route("/", get(pong))
-        .route("/save", post(save)))
+        .route("/api", get(pong))
+        .route("/api/item/save", post(save_item)))
 }
 
 pub async fn db() -> Result<Pool<Postgres>, Error> {
