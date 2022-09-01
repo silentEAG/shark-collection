@@ -1,5 +1,8 @@
 # Shark Collection
+**Under Coding**
+
 A Web application for **recording** and **sharing** e-Information (mostly article on website).
+
 Use Rust/axum and PostgresQL.
 
 ## API (Not Finish, Not stable)
