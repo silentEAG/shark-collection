@@ -33,5 +33,4 @@ thiserror = "1.0"
 once_cell = "^1.13"
 dotenvy = "^0.15"
 
-[dev.dependencies]
 minstant = "0.1.2"

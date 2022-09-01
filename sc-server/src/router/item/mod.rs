@@ -2,7 +2,7 @@ use self::entity::Item;
 use crate::common::err_message;
 use crate::model::request::{ItemBody, NewItem};
 use crate::types::Result;
-use axum::routing::post;
+use axum::routing::{get, post};
 use axum::{
     response::{IntoResponse, Response},
     Json,
@@ -18,7 +18,9 @@ use super::tag::entity::Tag;
 pub mod entity;
 
 pub fn router() -> Router {
-    Router::new().route("/api/item/save", post(save))
+    Router::new()
+        .route("/api/item/save", post(save))
+        .route("/api/item/total", get(total))
 }
 
 #[instrument(skip(frm, pool))]
@@ -78,4 +80,23 @@ pub async fn save(
     save_transaction.commit().await?;
 
     Ok(Json(json!({"status": "ok"})).into_response())
+}
+
+
+
+#[instrument(skip(pool))]
+pub async fn total(
+    Extension(pool): Extension<Pool<Postgres>>,
+) -> Result<Response> {
+    let r = sqlx::query!(
+        r#"
+            SELECT count(*) FROM sc_item
+        "#
+    )
+    .fetch_one(&pool)
+    .await?;
+    Ok(Json(json!({
+        "status": "ok",
+        "item_total": r.count
+    })).into_response())
 }

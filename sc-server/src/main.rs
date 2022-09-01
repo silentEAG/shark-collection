@@ -26,12 +26,13 @@ async fn main() -> crate::types::Result<()> {
     // Generate none blocking logger in file
     let file_appender = rolling::daily("logs", CONFIG.log_file_name());
     let (none_blocking_file_appender, _guard) = non_blocking(file_appender);
+    let (none_blocking_std_appender, _guard) = non_blocking(std::io::stdout());
 
     // Tracing subscriber
     tracing_subscriber::registry()
         // Set the Log level
         .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "DEBUG".into()),
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "INFO".into()),
         ))
         // Set the file logger
         .with(
@@ -41,7 +42,9 @@ async fn main() -> crate::types::Result<()> {
                 .with_filter(LevelFilter::TRACE),
         )
         // Set the console logger
-        .with(tracing_subscriber::fmt::layer())
+        .with(tracing_subscriber::fmt::layer()
+            .with_writer(none_blocking_std_appender)
+        )
         .init();
 
     // Make sure config loading is right

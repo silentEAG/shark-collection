@@ -9,7 +9,7 @@ use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
 
-use crate::router::item;
+use crate::router::{item, tag, catalog};
 use crate::router::pong::handler as pong;
 use crate::CONFIG;
 
@@ -47,6 +47,8 @@ pub async fn app() -> crate::types::Result<Router> {
     Ok(Router::new()
         .route("/api", get(pong))
         .merge(item::router())
+        .merge(tag::router())
+        .merge(catalog::router())
         .layer(
             ServiceBuilder::new()
                 .layer(Extension(pool))
