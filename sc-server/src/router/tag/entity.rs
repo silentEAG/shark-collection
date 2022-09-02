@@ -12,6 +12,10 @@ impl Tag {
         Self { name, num: None }
     }
 
+    pub fn new_with_num(name: String, num: isize) -> Self {
+        Self {name, num: Some(num)}
+    }
+
     /// Upsert tag table and return `id`
     pub async fn upsert(&self, pool: &mut sqlx::Transaction<'_, sqlx::Postgres>) -> Result<isize> {
 

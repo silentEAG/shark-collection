@@ -65,6 +65,7 @@ pub async fn app() -> crate::types::Result<Router> {
 pub async fn db() -> Result<Pool<Postgres>, Error> {
     PgPoolOptions::new()
         .max_connections(CONFIG.db_max_connections())
+        .min_connections(10)
         .connect(&CONFIG.db_url())
         .await
 }
