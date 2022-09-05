@@ -6,6 +6,7 @@ CREATE TABLE "public"."sc_item" (
   "tags" VARCHAR(255)[] COLLATE "pg_catalog"."default",
   "tags_num" INTEGER DEFAULT 0,
   "tags_id" INTEGER[],
-  "catalog" VARCHAR(255) COLLATE "pg_catalog"."default"
+  "catalog" VARCHAR(255) COLLATE "pg_catalog"."default",
+  "create_time" TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE)
 )
 ;

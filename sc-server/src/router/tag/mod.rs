@@ -1,6 +1,10 @@
-use axum::{Extension, response::{Response, IntoResponse}, Router, routing::get, Json};
+use axum::{
+    response::{IntoResponse, Response},
+    routing::get,
+    Extension, Json, Router,
+};
 use serde_json::json;
-use sqlx::{Postgres, Pool};
+use sqlx::{Pool, Postgres};
 use tracing::instrument;
 
 use crate::types::Result;
@@ -16,9 +20,7 @@ pub fn router() -> Router {
 }
 
 #[instrument(skip(pool))]
-pub async fn total(
-    Extension(pool): Extension<Pool<Postgres>>,
-) -> Result<Response> {
+pub async fn total(Extension(pool): Extension<Pool<Postgres>>) -> Result<Response> {
     let r = sqlx::query!(
         r#"
             SELECT count(*) FROM sc_tag
@@ -29,26 +31,16 @@ pub async fn total(
     Ok(Json(json!({
         "status": "ok",
         "tag_total": r.count
-    })).into_response())
+    }))
+    .into_response())
 }
 
 #[instrument(skip(pool))]
-pub async fn get_tag(
-    Extension(pool): Extension<Pool<Postgres>>,
-) -> Result<Response> {
-    let records = sqlx::query!(
-        r#"
-            SELECT * FROM sc_tag ORDER BY sc_tag.num DESC, sc_tag.name ASC
-        "#
-    )
-    .fetch_all(&pool)
-    .await?;
-    let res: Vec<Tag> = records.into_iter().map(|r| {
-        Tag::new_with_num(r.name, r.num as isize)
-    }).collect();
-    
+pub async fn get_tag(Extension(pool): Extension<Pool<Postgres>>) -> Result<Response> {
+    let tags = Tag::get_all(&pool).await?;
     Ok(Json(json!({
         "status": "ok",
-        "tags": res
-    })).into_response())
+        "tags": tags
+    }))
+    .into_response())
 }

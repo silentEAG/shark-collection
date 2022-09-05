@@ -39,8 +39,7 @@ pub async fn save(
     let mut catalog = Catalog::new(item.catalog.clone());
 
     // Check catalog if exists
-    let catalog_id = catalog.is_existd(&pool).await?;
-    catalog.id = Some(catalog_id);
+    catalog.id = Some(catalog.is_existd(&pool).await?);
 
     // Enable transaction
     let mut save_transaction = pool.begin().await?;
@@ -49,8 +48,7 @@ pub async fn save(
     catalog.update(&mut save_transaction).await?;
 
     // Insert to item table, `tags_id` is not update yet
-    let id = item.insert(&mut save_transaction).await?;
-    item.id = Some(id);
+    item.id = Some(item.insert(&mut save_transaction).await?);
 
     // 1. Upsert tag in table
     // 2. Collect tag's id for updating item table in `tags_id`
@@ -82,12 +80,8 @@ pub async fn save(
     Ok(Json(json!({"status": "ok"})).into_response())
 }
 
-
-
 #[instrument(skip(pool))]
-pub async fn total(
-    Extension(pool): Extension<Pool<Postgres>>,
-) -> Result<Response> {
+pub async fn total(Extension(pool): Extension<Pool<Postgres>>) -> Result<Response> {
     let r = sqlx::query!(
         r#"
             SELECT count(*) FROM sc_item
@@ -98,5 +92,6 @@ pub async fn total(
     Ok(Json(json!({
         "status": "ok",
         "item_total": r.count
-    })).into_response())
+    }))
+    .into_response())
 }

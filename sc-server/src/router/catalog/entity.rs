@@ -4,10 +4,27 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct CatalogBody<T> {
+    pub catalog: T,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct NewICatalog {
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Catalog {
     pub id: Option<i32>,
     pub name: String,
     pub num: Option<isize>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CatalogMap {
+    pub id: i32,
+    pub name: String,
+    pub num: i32,
 }
 
 impl From<Item> for Catalog {
@@ -61,5 +78,36 @@ impl Catalog {
         .execute(pool)
         .await?;
         Ok(())
+    }
+
+    pub async fn get_all(pool: &Pool<Postgres>) -> Result<Vec<CatalogMap>> {
+        let res = sqlx::query_as!(
+            CatalogMap,
+            r#"
+                SELECT id, name, num FROM sc_catalog
+            "#
+        )
+        .fetch_all(pool)
+        .await?;
+        Ok(res)
+    }
+
+    pub async fn add(&self, pool: &Pool<Postgres>) -> Result<()> {
+        match self.is_existd(pool).await {
+            Err(_) => {
+                sqlx::query!(
+                    r#"
+                        INSERT INTO
+                        sc_catalog(name, num)
+                        VALUES ($1, 0)
+                    "#,
+                    self.name
+                )
+                .execute(pool)
+                .await?;
+                Ok(())
+            }
+            Ok(_) => Err(err_message("Catalog is already existed.")),
+        }
     }
 }

@@ -9,8 +9,8 @@ use tower::ServiceBuilder;
 use tower_http::cors::{Any, CorsLayer};
 use tracing_appender::non_blocking::{NonBlocking, WorkerGuard};
 
-use crate::router::{item, tag, catalog};
 use crate::router::pong::handler as pong;
+use crate::router::{catalog, item, tag};
 use crate::CONFIG;
 
 #[derive(Clone, Debug)]
@@ -50,15 +50,13 @@ pub async fn app() -> crate::types::Result<Router> {
         .merge(tag::router())
         .merge(catalog::router())
         .layer(
-            ServiceBuilder::new()
-                .layer(Extension(pool))
-                .layer(
-                    CorsLayer::new()
-                        // Allow `GET` and `POST` when accessing the resource
-                        .allow_methods([Method::GET, Method::POST])
-                        // Allow requests from any origin
-                        .allow_origin(Any),
-                ),
+            ServiceBuilder::new().layer(Extension(pool)).layer(
+                CorsLayer::new()
+                    // Allow `GET` and `POST` when accessing the resource
+                    .allow_methods([Method::GET, Method::POST])
+                    // Allow requests from any origin
+                    .allow_origin(Any),
+            ),
         ))
 }
 

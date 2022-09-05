@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS "public"."sc_tag_map";
 CREATE TABLE "public"."sc_tag_map" (
   "id" SERIAL PRIMARY KEY,
   "tag_id" INTEGER NOT NULL,
-  "item_id" INTEGER NOT NULL
+  "item_id" INTEGER NOT NULL,
+  "create_time" TIMESTAMP NOT NULL DEFAULT TIMEZONE('UTC-8'::TEXT, NOW()::TIMESTAMP(0) WITHOUT TIME ZONE)
 )
 ;

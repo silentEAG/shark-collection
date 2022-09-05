@@ -42,9 +42,7 @@ async fn main() -> crate::types::Result<()> {
                 .with_filter(LevelFilter::TRACE),
         )
         // Set the console logger
-        .with(tracing_subscriber::fmt::layer()
-            .with_writer(none_blocking_std_appender)
-        )
+        .with(tracing_subscriber::fmt::layer().with_writer(none_blocking_std_appender))
         .init();
 
     // Make sure config loading is right
